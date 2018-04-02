@@ -28,7 +28,7 @@ class SmsRu
     public $test = false;
 
     /**
-     * @var string
+     * @var int
      */
     public $partnerId;
 
