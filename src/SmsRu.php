@@ -73,11 +73,6 @@ class SmsRu
             RequestOptions::QUERY => ['json' => 1],
             RequestOptions::FORM_PARAMS => $params
         ]);
-
-        if ($res->getStatusCode() !== 200) {
-            throw new \Exception('Status code error.');
-        }
-
         return $this->handle(\GuzzleHttp\json_decode($res->getBody()));
     }
 
