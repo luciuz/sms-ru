@@ -62,19 +62,18 @@ class SmsRu
 
     /**
      * @param string $method
-     * @param string|array $out
      * @param array $params
      * @return \stdClass
      * @throws \Exception
      */
-    public function do($method, $out, $params = [])
+    public function do($method, $params = [])
     {
         $params['api_id'] = $this->apiId;
         $res = $this->client->request('POST', $this->url . '/' . $method, [
             RequestOptions::QUERY => ['json' => 1],
             RequestOptions::FORM_PARAMS => $params
         ]);
-        return $this->handle(\GuzzleHttp\json_decode($res->getBody()), $out);
+        return $this->handle(\GuzzleHttp\json_decode($res->getBody()));
     }
 
     /**
@@ -83,19 +82,18 @@ class SmsRu
      * @return \stdClass
      * @throws \Exception
      */
-    public function handle($response, $out)
+    public function handle($response)
     {
         if ($response->status == 'ERROR') {
             throw new \Exception($response->status_text, $response->status_code);
         }
-        if (is_string($out)) {
-            $out = [$out];
+        unset($response->status);
+        unset($response->status_code);
+        $keys = array_keys((array) $response);
+        if (count($keys) == 1) {
+            return $response->{$keys[0]};
         }
-        $result = new \stdClass();
-        foreach ($out as $item) {
-            $result->{$item} = $response->{$item};
-        }
-        return $result;
+        return $response;
     }
 
     /**
@@ -104,7 +102,7 @@ class SmsRu
      */
     public function send($sms)
     {
-        return $this->do('sms/send', ['sms', 'balance'], [
+        return $this->do('sms/send', [
             'from' => $this->from,
             'translit' => (int) $this->translit,
             'test' => (int) $this->test,
@@ -123,7 +121,7 @@ class SmsRu
         foreach ($smsBundle as $sms) {
             $multi[$sms->to] = $sms->msg;
         }
-        return $this->do('sms/send', ['sms', 'balance'], [
+        return $this->do('sms/send', [
             'from' => $this->from,
             'translit' => (int) $this->translit,
             'test' => (int) $this->test,
@@ -136,7 +134,7 @@ class SmsRu
      */
     public function getBalance()
     {
-        return $this->do('/my/balance', 'balance');
+        return $this->do('/my/balance');
     }
 
     /**
@@ -144,7 +142,7 @@ class SmsRu
      */
     public function getSenders()
     {
-        return $this->do('/my/senders', 'senders');
+        return $this->do('/my/senders');
     }
 
     /**
@@ -152,6 +150,6 @@ class SmsRu
      */
     public function getLimit()
     {
-        return $this->do('/my/limit', ['total_limit', 'used_today']);
+        return $this->do('/my/limit');
     }
 }
